@@ -17,6 +17,8 @@ import os
 import subprocess
 
 from datetime import datetime
+import time
+
 #======================= GLOBAL VARS  =====================================================
 #__CLOUDBOOK:GLOBAL__
 number_of_agents=0
@@ -24,7 +26,7 @@ filename="videos/friends.mp4"
 ffcom="-vf hflip"
 time_portion=0
 extension="mp4"
-
+file_portion=[]
 # ==========================================================================================
 # MAIN function always falls into DU0 --> Agent0
 #__CLOUDBOOK:MAIN__
@@ -49,69 +51,36 @@ def main():
 	du0_main_boinc_menu()
 
 
-	
-# ==========================================================================================
+#===========================================================================================	
 #__CLOUDBOOK:DU0__
-def du0_print(cad):
-	print(cad)
+def du0_main_boinc_menu():
 
-# ==========================================================================================
-#__CLOUDBOOK:PARALLEL__
-def parallel_do_task(i, time_portion):	
-	cad=("\n hello, I am doing portion"+str(i))
-	du0_print (cad)
-	#os.system('ffprobe -i concat.mp4 -show_entries format=duration -v quiet -of csv="p=0"')
-	global filename
-	global ffcom
-	global extension
-	start_time=int (i*time_portion)
-
-	command="ffmpeg -y -i "+filename+ " "+ffcom+" -ss "+ str(start_time)+" -t "+ str(time_portion) +" portion_"+str(int(i*time_portion))+"."+extension
-	print ("\n"+command+"\n")
-	return_code = subprocess.call(command, shell=True)
-
-# ======================================================================================
-#__CLOUDBOOK:DU0__
-def du0_concat_files():
-	global extension
-	command="ffmpeg -y -f concat -safe 0 -i list_concat.txt -c copy concat_file."+extension
-	print ("\n"+command+"\n")
-	return_code = subprocess.call(command, shell=True)
-
-# ======================================================================================
-#__CLOUDBOOK:DU0__
-def du0_interactive_run():
-	global number_of_agents
-	global time_portion
-
-	input("start? (press ENTER)")
-
-
-	start_time = datetime.now()
-	
-	for i in range(number_of_agents):
-		parallel_do_task(i,time_portion) 
-
-	print ("\n all agents launched \n")
-	
-	#__CLOUDBOOK:SYNC__
-	print ("\n all agents finished \n")
-
-	#last task is to concat output files
-	du0_concat_files()
-	end_time = datetime.now()
-	elapsed=(end_time-start_time)
-	print ("==============================")
-	print ("elapsed time:"+str(elapsed))
-	print ("==============================")
-	
+	while (True):		
+		#os.system('cls')  # on windows
+		print("")
+		print ("main menu options")
+		print ("=================")
+		print (" i: input video filename and ffmpeg command")
+		print (" r: run agents")
+		print (" x: exit")
+		
+		command=input ("command?:")
+		
+		if (command=="x"):
+			sys.exit()
+		elif (command=="r"):
+			du0_interactive_run()
+		elif (command=="i"):
+			du0_interactive_filename()
 
 #===========================================================================================	
+
 #__CLOUDBOOK:DU0__
 def du0_interactive_filename():
 	global filename
 	global ffcom
 	global extension
+	global file_portion
 
 	filename=input ("input video filename?:[videos/friends.mp4]")
 	if (filename==""):
@@ -140,9 +109,17 @@ def du0_interactive_filename():
 	
 
 	#create list of portions  to concat
+	print ("creating list of portions to concat:")
+	file_portion=[] #initialization
 	f = open ('list_concat.txt','w')
 	for i in range(0,number_of_agents):
-		cad="file 'portion_"+str(int(i*time_portion))+"."+extension+"' \n"
+		
+		cad="portion_"+str(int(i*time_portion))+"."+extension
+		file_portion.append(cad)
+		print ("  -->adding file:",cad)
+		#cad="file 'portion_"+str(int(i*time_portion))+"."+extension+"' \n"
+		#cad="file 'portion_"+file_portion[i]+"' \n"
+		cad="file '"+cad+"' \n"
 		f.write(cad)
 	f.close()
 	
@@ -154,30 +131,78 @@ def du0_interactive_filename():
 
 
 
-#===========================================================================================	
+				
+# ==========================================================================================
 #__CLOUDBOOK:DU0__
-def du0_main_boinc_menu():
+def du0_print(cad):
+	print(cad)
 
-	while (True):		
-		#os.system('cls')  # on windows
-		print("")
-		print ("main menu options")
-		print ("=================")
-		print (" i: input video filename and ffmpeg command")
-		print (" r: run agents")
-		print (" x: exit")
-		
-		command=input ("command?:")
-		
-		if (command=="x"):
-			sys.exit()
-		elif (command=="r"):
-			du0_interactive_run()
-		elif (command=="i"):
-			du0_interactive_filename()
-			
-			
+# ======================================================================================
+#__CLOUDBOOK:DU0__
+def du0_interactive_run():
+	global number_of_agents
+	global time_portion
+
+	input("start? (press ENTER)")
+
+
+	start_time = datetime.now()
+	
+	for i in range(number_of_agents):
+		parallel_do_task(i,time_portion) 
+
+	print ("\n all agents launched \n")
+	
+	#__CLOUDBOOK:SYNC__
+	print ("\n all agents finished \n")
+
+	#last task is to concat output files
+	du0_concat_files()
+	end_time = datetime.now()
+	elapsed=(end_time-start_time)
+	print ("==============================")
+	print ("elapsed time:"+str(elapsed))
+	print ("==============================")
+
+# ==========================================================================================
+#__CLOUDBOOK:PARALLEL__
+def parallel_do_task(i, time_portion):	
+	cad=("\n hello, I am doing portion"+str(i))
+	du0_print (cad)
+	#os.system('ffprobe -i concat.mp4 -show_entries format=duration -v quiet -of csv="p=0"')
+	global filename
+	global ffcom
+	global extension
+	start_time=int (i*time_portion)
+
+	command="ffmpeg -y -i "+filename+ " "+ffcom+" -ss "+ str(start_time)+" -t "+ str(time_portion) +" portion_"+str(int(i*time_portion))+"."+extension
+	print ("\n"+command+"\n")
+	return_code = subprocess.call(command, shell=True)
+
+	
+# ======================================================================================
+#__CLOUDBOOK:DU0__
+def du0_concat_files():
+	global extension
+
+	#check if all portions are available
+	print ("checking files at FS:")
+	global file_portion
+	for i in file_portion:
+		print ("   checking file ", i, "availability...", end='')
+		while os.path.exists(i)==False:
+			time.sleep(1)
+		print ("OK")
+
+
+
+
+
+	command="ffmpeg -y -f concat -safe 0 -i list_concat.txt -c copy concat_file."+extension
+	print ("\n"+command+"\n")
+	return_code = subprocess.call(command, shell=True)
 #===========================================================================================	
+
 
 
 main()
