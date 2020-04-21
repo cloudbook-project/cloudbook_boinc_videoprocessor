@@ -82,11 +82,20 @@ def du0_interactive_filename():
 	global extension
 	global file_portion
 
-	filename=input ("input video filename?:[videos/friends.mp4]")
+
+	filename=input ("input video filename?:[./videos/friends.mp4]")
 	if (filename==""):
-		filename="videos/friends.mp4"
-		#obtenemos duracion
+		filename="./videos/friends.mp4"
 	
+	#please write an existing filename	
+	while (not	os.path.exists(filename) ) :
+		print ("ERROR: file not exists")
+		filename=input ("video filename?:")
+		if (filename==''):
+			filename="./videos/friends.mp4"
+
+	# get extension. Every exension correspond with coded. Therefore if 
+	# original extension and output extension are different, this produce transcoding
 	extension=input ("output file extension?:[mp4]")
 	if (extension==""):
 		extension="mp4"
@@ -96,7 +105,7 @@ def du0_interactive_filename():
 	global number_of_agents
 	
 
-
+	# get duration
 	command='ffprobe -i '+ filename +' -show_entries format=duration -v quiet -of csv="p=0" >duracion.txt'
 	return_code = subprocess.call(command, shell=True)
 	f = open ('duracion.txt','r')
@@ -193,7 +202,7 @@ def du0_concat_files():
 		while os.path.exists(i)==False:
 			time.sleep(1)
 		print ("OK")
-
+	time.sleep(2)
 
 
 
